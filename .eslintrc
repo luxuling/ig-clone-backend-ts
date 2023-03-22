@@ -1,0 +1,21 @@
+{
+  "extends": [
+  "eslint:recommended",
+  "airbnb-base",
+  "airbnb-typescript/base",
+  "plugin:@typescript-eslint/recommended"
+],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "parserOptions":{
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "linebreak-style":"off",
+    "@typescript-eslint/no-explicit-any": ["off"],
+    "no-console": "error",
+    "@typescript-eslint/naming-convention":"off",
+    "no-underscore-dangle":"off"
+  },
+  "root": true
+}
