@@ -6,6 +6,7 @@ export interface UserType {
   fullName: string;
   provider: string;
   email: string;
+  noHp: string;
   password: string;
   token: string;
   createdAt: Date;

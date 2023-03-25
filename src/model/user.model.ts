@@ -16,9 +16,12 @@ const UserSchema = new Schema<UserType>({
     type: String,
   },
   email: {
-    required: true,
-    unique: true,
     type: String,
+    default: undefined,
+  },
+  noHp: {
+    type: String,
+    default: undefined,
   },
   password: {
     required: true,

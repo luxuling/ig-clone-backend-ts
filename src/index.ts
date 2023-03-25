@@ -6,5 +6,5 @@ import createServer from '@lib/createServer';
 const server = createServer();
 
 server.listen(app.PORT, () =>
-  // eslint-disable-next-line no-console
+  // eslint-disable-next-line no-console, implicit-arrow-linebreak
   console.log(`Server listening on port:${app.PORT}`));

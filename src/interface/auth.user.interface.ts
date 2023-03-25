@@ -3,6 +3,7 @@ export interface IUserRegister {
   fullName: string;
   provider: string;
   email: string;
+  noHp: string;
   password: string;
 }
 
@@ -20,5 +21,10 @@ export interface IFacebookData {
     name: string;
     provider: string;
     emails: Array<string>;
+    _json: {
+      email: string;
+      first_name: string;
+      last_name: string;
+    }
   };
 }

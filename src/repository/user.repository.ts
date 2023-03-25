@@ -13,13 +13,14 @@ export default class UserRepository {
   }
 
   static async create({
-    userName, fullName, email, password, provider,
+    userName, fullName, email, password, provider, noHp,
   }: IUserRegister) {
     return User.create({
       userName,
       fullName,
       provider,
       email,
+      noHp,
       password,
     });
   }

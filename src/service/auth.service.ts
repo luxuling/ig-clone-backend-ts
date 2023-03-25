@@ -29,14 +29,12 @@ export default class AuthService {
   }
 
   static async register(body: IUserRegister) {
-    if (body.password.length < 6) {
-      throw new Error('password must be at least 6 characters');
-    }
     const userData = await UserRepository.create({
       userName: body.userName,
       fullName: body.fullName,
       provider: 'local',
       email: body.email,
+      noHp: body.noHp,
       password: this.hash(body.password),
     });
     const tokinize = this.tokenize({ id: userData._id, email: userData.email });
@@ -45,6 +43,7 @@ export default class AuthService {
       fullName: userResponse?.fullName,
       userName: userResponse?.userName,
       email: userResponse?.email,
+      noHp: userResponse?.noHp,
       token: userResponse?.token,
       createdAt: userResponse?.createdAt,
       updatedAt: userResponse?.updatedAt,
@@ -82,11 +81,12 @@ export default class AuthService {
     });
     if (!currentUser) {
       const userData = await UserRepository.create({
-        userName: passportData.profile.username || passportData.profile.displayName,
-        fullName: passportData.profile.displayName,
+        userName: passportData.profile._json.first_name + passportData.profile._json.last_name,
+        fullName: passportData.profile._json.first_name + passportData.profile._json.last_name,
         password: passportData.accessToken,
         provider: passportData.profile.provider,
-        email: passportData.profile.emails ? passportData.profile.emails[0] : 'not set',
+        email: passportData.profile._json.email,
+        noHp: '',
       });
       const userResponse = await UserRepository.update(userData._id, passportData.accessToken);
       return {
