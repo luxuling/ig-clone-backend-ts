@@ -3,7 +3,8 @@ import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
 
 import UserRepository from '@repository/user.repository';
-import { IFacebookData, IUserLogin, IUserRegister } from '@interface/auth.user.interface';
+import { IFacebookData, IUserRegister } from '@interface/auth.user.interface';
+import { User } from '@model/user.model';
 
 export default class AuthService {
   private static readonly rounds = auth.round;
@@ -50,8 +51,9 @@ export default class AuthService {
     };
   }
 
-  static async login(body: IUserLogin) {
-    const userData = await UserRepository.findOne({ email: body.email });
+  static async login(body: any) {
+    const dinamicKey : any = Object.keys(body)[0];
+    const userData = await User.findOne().where(dinamicKey).equals(body[dinamicKey]);
     if (userData === null) {
       throw new Error(`Could find user with email ${body.email}`);
     }

@@ -7,11 +7,6 @@ export interface IUserRegister {
   password: string;
 }
 
-export interface IUserLogin {
-  email: string;
-  password: string;
-}
-
 export interface IFacebookData {
   accessToken: string;
   profile: {
