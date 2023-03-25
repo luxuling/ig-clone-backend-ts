@@ -3,7 +3,7 @@ import { UserType } from './type.model';
 
 const UserSchema = new Schema<UserType>({
   facebookId: {
-    default: 'not set',
+    default: undefined,
     type: String,
   },
   userName: {

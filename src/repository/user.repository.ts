@@ -25,12 +25,13 @@ export default class UserRepository {
     });
   }
 
-  static async update(id: any, token: string) {
+  static async update(id: any, token: string, facebookId:string) {
     await User.updateOne(
       {
         _id: id,
       },
       {
+        facebookId,
         token,
         updatedAt: Date(),
       },
