@@ -37,6 +37,7 @@ export default class AuthService {
       email: body.email,
       noHp: body.noHp,
       password: this.hash(body.password),
+      birth: body.birth,
     });
     const tokinize = this.tokenize({ id: userData._id, email: userData.email });
     const userResponse = await UserRepository.update(userData._id, tokinize, userData.facebookId);
@@ -45,6 +46,7 @@ export default class AuthService {
       userName: userResponse?.userName,
       email: userResponse?.email,
       noHp: userResponse?.noHp,
+      birth: userResponse?.birth,
       token: userResponse?.token,
       createdAt: userResponse?.createdAt,
       updatedAt: userResponse?.updatedAt,
@@ -69,6 +71,7 @@ export default class AuthService {
         userName: userResponse?.userName,
         email: userResponse?.email,
         token: userResponse?.token,
+        birth: userResponse?.birth,
         createdAt: userResponse?.createdAt,
         updatedAt: userResponse?.updatedAt,
       };
@@ -87,6 +90,7 @@ export default class AuthService {
         fullName: passportData.profile._json.first_name + passportData.profile._json.last_name,
         password: passportData.accessToken,
         provider: passportData.profile.provider,
+        birth: passportData.profile._json.birthday,
         email: passportData.profile._json.email,
         noHp: '',
       });

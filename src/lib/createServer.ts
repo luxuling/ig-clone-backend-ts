@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import http from 'http';
 import express from 'express';
 import mongoose from 'mongoose';
@@ -5,21 +6,23 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import sessionMiddleware from '@middleware/session.middleware';
 import passport from '@middleware/facebook.passport';
+import cors from 'cors';
 import router from '../router/auth';
 
 const createServer = () => {
-  const aplication = express();
+  const app = express();
+  app.use(cors());
   mongoose.connect('mongodb://localhost:27017/ig-database');
-  aplication.use(bodyParser.json());
+  app.use(bodyParser.json());
 
-  aplication.use(cookieParser());
-  aplication.use(sessionMiddleware);
+  app.use(cookieParser());
+  app.use(sessionMiddleware);
 
-  aplication.use(passport.initialize());
-  aplication.use(passport.session());
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-  aplication.use(router);
-  return new http.Server(aplication);
+  app.use(router);
+  return new http.Server(app);
 };
 
 export default createServer;

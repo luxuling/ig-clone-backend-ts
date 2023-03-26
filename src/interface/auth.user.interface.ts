@@ -5,6 +5,7 @@ export interface IUserRegister {
   email: string;
   noHp: string;
   password: string;
+  birth: string;
 }
 
 export interface IFacebookData {
@@ -20,6 +21,7 @@ export interface IFacebookData {
       email: string;
       first_name: string;
       last_name: string;
+      birthday: string;
     }
   };
 }

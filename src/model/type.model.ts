@@ -7,6 +7,7 @@ export interface UserType {
   provider: string;
   email: string;
   noHp: string;
+  birth: string;
   password: string;
   token: string;
   createdAt: Date;

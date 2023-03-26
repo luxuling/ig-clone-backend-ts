@@ -8,7 +8,7 @@ passport.use(
       clientID: facebookAuthConf.FACEBOOK_CLIENT_ID,
       clientSecret: facebookAuthConf.FACEBOOK_SECRET,
       callbackURL: facebookAuthConf.FACEBOOK_CALLBACK_URL,
-      profileFields: ['id', 'email', 'gender', 'link', 'locale', 'name', 'timezone', 'updated_time', 'verified'],
+      profileFields: ['id', 'email', 'gender', 'link', 'locale', 'name', 'timezone', 'birthday', 'verified'],
     },
     (async (accessToken, refreshToken, profile, cb) => {
       cb(null, {

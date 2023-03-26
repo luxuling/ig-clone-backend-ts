@@ -27,6 +27,10 @@ const UserSchema = new Schema<UserType>({
     required: true,
     type: String,
   },
+  birth: {
+    type: String,
+    default: '',
+  },
   provider: {
     type: String,
     required: true,
