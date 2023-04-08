@@ -1,10 +1,11 @@
 import auth from '@config/auth';
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
-
+import nodemailer from 'nodemailer';
 import UserRepository from '@repository/user.repository';
 import { IFacebookData, IUserRegister } from '@interface/auth.user.interface';
 import { User } from '@model/user.model';
+import nodemailerConf from '@config/otp';
 
 export default class AuthService {
   private static readonly rounds = auth.round;
@@ -40,7 +41,11 @@ export default class AuthService {
       birth: body.birth,
     });
     const tokinize = this.tokenize({ id: userData._id, email: userData.email });
-    const userResponse = await UserRepository.update(userData._id, tokinize, userData.facebookId);
+    const userResponse = await UserRepository.update(
+      userData._id,
+      tokinize,
+      userData.facebookId
+    );
     return {
       fullName: userResponse?.fullName,
       userName: userResponse?.userName,
@@ -54,8 +59,10 @@ export default class AuthService {
   }
 
   static async login(body: any) {
-    const dinamicKey : any = Object.keys(body)[0];
-    const userData = await User.findOne().where(dinamicKey).equals(body[dinamicKey]);
+    const dinamicKey: any = Object.keys(body)[0];
+    const userData = await User.findOne()
+      .where(dinamicKey)
+      .equals(body[dinamicKey]);
     if (userData === null) {
       throw new Error(`Could find user with email ${body.email}`);
     }
@@ -65,7 +72,11 @@ export default class AuthService {
         id: userData._id,
         email: userData.email,
       });
-      const userResponse = await UserRepository.update(userData._id, tokinize, userData.facebookId);
+      const userResponse = await UserRepository.update(
+        userData._id,
+        tokinize,
+        userData.facebookId
+      );
       return {
         fullName: userResponse?.fullName,
         userName: userResponse?.userName,
@@ -86,8 +97,12 @@ export default class AuthService {
     });
     if (!currentUser) {
       const userData = await UserRepository.create({
-        userName: passportData.profile._json.first_name + passportData.profile._json.last_name,
-        fullName: passportData.profile._json.first_name + passportData.profile._json.last_name,
+        userName:
+          passportData.profile._json.first_name +
+          passportData.profile._json.last_name,
+        fullName:
+          passportData.profile._json.first_name +
+          passportData.profile._json.last_name,
         password: passportData.accessToken,
         provider: passportData.profile.provider,
         birth: passportData.profile._json.birthday,
@@ -97,7 +112,7 @@ export default class AuthService {
       const userResponse = await UserRepository.update(
         userData._id,
         passportData.accessToken,
-        passportData.profile.id,
+        passportData.profile.id
       );
       return {
         facebookId: userResponse?.facebookId,
@@ -117,5 +132,24 @@ export default class AuthService {
       createdAt: currentUser?.createdAt,
       updatedAt: currentUser?.updatedAt,
     };
+  }
+
+  static async sendOtp(email: string) {
+    const OTP = Math.floor(100000 + Math.random() * 900000);
+
+    const mailOptions = {
+      from: nodemailerConf.from_options,
+      to: email,
+      subject: 'Your OTP for our app',
+      text: `Your OTP is ${OTP}. It will expire in 10 minutes.`,
+    };
+    const transporter = nodemailer.createTransport({
+      service: nodemailerConf.service,
+      auth: {
+        user: nodemailerConf.user,
+        pass: nodemailerConf.password,
+      },
+    });
+    await transporter.sendMail(mailOptions);
   }
 }

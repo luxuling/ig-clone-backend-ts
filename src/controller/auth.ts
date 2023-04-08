@@ -25,11 +25,24 @@ export default class AuthController {
 
   static async facebookAuth(req: Request, res: Response) {
     try {
-      const data = await AuthService.facebookCallback(req.user as IFacebookData);
+      const data = await AuthService.facebookCallback(
+        req.user as IFacebookData
+      );
       res.status(201);
       res.json(data);
     } catch (error) {
       ErrorHandler.databaseErrorHandler(error, res);
+    }
+  }
+
+  static async otpAuth(req: Request, res: Response) {
+    try {
+      await AuthService.sendOtp(req.body.email as string);
+      res.status(200);
+      res.send('success');
+    } catch (error) {
+      res.send(error);
+      res.status(400);
     }
   }
 }

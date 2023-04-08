@@ -14,7 +14,7 @@
       "@interface/*": ["interface/*"],
       "@repository/*": ["repository/*"],
       "@error/*": ["error/*"],
-      "@middleware/*": ["middleware/*"],
+      "@middleware/*": ["middleware/*"]
     },
     "sourceMap": true,
     "outDir": "build",
@@ -27,5 +27,5 @@
     "noImplicitAny": true,
     "skipLibCheck": true
   },
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "dist"]
 }
