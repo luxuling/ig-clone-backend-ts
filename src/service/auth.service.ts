@@ -2,10 +2,13 @@ import auth from '@config/auth';
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import twillo from 'twilio';
 import UserRepository from '@repository/user.repository';
 import { IFacebookData, IUserRegister } from '@interface/auth.user.interface';
 import { User } from '@model/user.model';
 import nodemailerConf from '@config/otp';
+import twilloConf from '@config/twillo';
 
 export default class AuthService {
   private static readonly rounds = auth.round;
@@ -134,7 +137,7 @@ export default class AuthService {
     };
   }
 
-  static async sendOtp(email: string) {
+  static async sendEmailOTP(email: string) {
     const OTP = Math.floor(100000 + Math.random() * 900000);
 
     const mailOptions = {
@@ -151,5 +154,19 @@ export default class AuthService {
       },
     });
     await transporter.sendMail(mailOptions);
+  }
+
+  static async sendSmsOTP(number: string) {
+    const OTP = Math.floor(100000 + Math.random() * 900000);
+    const accountSid = twilloConf.accountSID;
+    const authToken = twilloConf.authToken;
+    const client = twillo(accountSid, authToken);
+
+    const message = await client.messages.create({
+      body: `Your OTP is ${OTP}. It will expire in 10 minutes.`,
+      from: twilloConf.number,
+      to: '+6287819444100',
+    });
+    return message.sid;
   }
 }

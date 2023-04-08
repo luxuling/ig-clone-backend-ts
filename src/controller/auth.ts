@@ -35,14 +35,25 @@ export default class AuthController {
     }
   }
 
-  static async otpAuth(req: Request, res: Response) {
+  static async emailOTP(req: Request, res: Response) {
     try {
-      await AuthService.sendOtp(req.body.email as string);
+      await AuthService.sendEmailOTP(req.body.email as string);
       res.status(200);
       res.send('success');
     } catch (error) {
       res.send(error);
       res.status(400);
+    }
+  }
+
+  static async smsOTP(req: Request, res: Response) {
+    try {
+      const response = await AuthService.sendSmsOTP(req.body.number as string);
+      res.status(200);
+      res.send(`Successfully sent OTP with sid : ${response}`);
+    } catch (error) {
+      res.status(400);
+      res.send(error);
     }
   }
 }

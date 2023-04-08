@@ -11,7 +11,8 @@ router.post(
   expressAsyncHandler(AuthController.register)
 );
 router.post('/auth/login', expressAsyncHandler(AuthController.login));
-router.post('/auth/otp', expressAsyncHandler(AuthController.otpAuth));
+router.post('/auth/otp', expressAsyncHandler(AuthController.emailOTP));
+router.post('/auth/sms/otp', expressAsyncHandler(AuthController.smsOTP));
 router.get(
   '/auth/facebook',
   passport.authenticate('facebook', { scope: 'email' })
