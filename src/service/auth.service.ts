@@ -9,6 +9,7 @@ import { IFacebookData, IUserRegister } from '@interface/auth.user.interface';
 import { User } from '@model/user.model';
 import nodemailerConf from '@config/otp';
 import twilloConf from '@config/twillo';
+import convertPhoneNumber from '@utils/convert.number';
 
 export default class AuthService {
   private static readonly rounds = auth.round;
@@ -165,7 +166,7 @@ export default class AuthService {
     const message = await client.messages.create({
       body: `Your OTP is ${OTP}. It will expire in 10 minutes.`,
       from: twilloConf.number,
-      to: '+6287819444100',
+      to: convertPhoneNumber(number),
     });
     return message.sid;
   }

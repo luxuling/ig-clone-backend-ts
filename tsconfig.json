@@ -14,7 +14,8 @@
       "@interface/*": ["interface/*"],
       "@repository/*": ["repository/*"],
       "@error/*": ["error/*"],
-      "@middleware/*": ["middleware/*"]
+      "@middleware/*": ["middleware/*"],
+      "@utils/*": ["utils/*"]
     },
     "sourceMap": true,
     "outDir": "build",
