@@ -10,6 +10,8 @@ import { User } from '@model/user.model';
 import nodemailerConf from '@config/otp';
 import twilloConf from '@config/twillo';
 import convertPhoneNumber from '@utils/convert.number';
+import { OTPdb } from '@model/otp.model';
+import { ObjectId } from 'mongoose';
 
 export default class AuthService {
   private static readonly rounds = auth.round;
@@ -44,21 +46,18 @@ export default class AuthService {
       password: this.hash(body.password),
       birth: body.birth,
     });
+
     const tokinize = this.tokenize({ id: userData._id, email: userData.email });
-    const userResponse = await UserRepository.update(
-      userData._id,
-      tokinize,
-      userData.facebookId
-    );
+    UserRepository.update(userData._id, tokinize, userData.facebookId);
+
+    if (userData.email !== undefined) {
+      this.sendEmailOTP(userData.email, userData._id);
+    } else {
+      this.sendSmsOTP(userData.noHp, userData._id);
+    }
     return {
-      fullName: userResponse?.fullName,
-      userName: userResponse?.userName,
-      email: userResponse?.email,
-      noHp: userResponse?.noHp,
-      birth: userResponse?.birth,
-      token: userResponse?.token,
-      createdAt: userResponse?.createdAt,
-      updatedAt: userResponse?.updatedAt,
+      status: 'pending',
+      message: 'OTP is sent successfully, wait for authentication',
     };
   }
 
@@ -85,8 +84,9 @@ export default class AuthService {
         fullName: userResponse?.fullName,
         userName: userResponse?.userName,
         email: userResponse?.email,
-        token: userResponse?.token,
+        noHp: userResponse?.noHp,
         birth: userResponse?.birth,
+        token: userResponse?.token,
         createdAt: userResponse?.createdAt,
         updatedAt: userResponse?.updatedAt,
       };
@@ -138,7 +138,7 @@ export default class AuthService {
     };
   }
 
-  static async sendEmailOTP(email: string) {
+  static async sendEmailOTP(email: string, userId: any) {
     const OTP = Math.floor(100000 + Math.random() * 900000);
 
     const mailOptions = {
@@ -147,6 +147,7 @@ export default class AuthService {
       subject: 'Your OTP for our app',
       text: `Your OTP is ${OTP}. It will expire in 10 minutes.`,
     };
+
     const transporter = nodemailer.createTransport({
       service: nodemailerConf.service,
       auth: {
@@ -154,10 +155,16 @@ export default class AuthService {
         pass: nodemailerConf.password,
       },
     });
+
+    await OTPdb.create({
+      userId: userId,
+      tokenOTP: this.hash(String(OTP)),
+    });
+
     await transporter.sendMail(mailOptions);
   }
 
-  static async sendSmsOTP(number: string) {
+  static async sendSmsOTP(number: string, userId: any) {
     const OTP = Math.floor(100000 + Math.random() * 900000);
     const accountSid = twilloConf.accountSID;
     const authToken = twilloConf.authToken;
@@ -168,6 +175,41 @@ export default class AuthService {
       from: twilloConf.number,
       to: convertPhoneNumber(number),
     });
+
+    await OTPdb.create({
+      userId: userId,
+      tokenOTP: this.hash(String(OTP)),
+    });
+
     return message.sid;
+  }
+
+  static async validateOTP(userId: string, tokenOTP: string) {
+    const currentOTP = await OTPdb.findOne({ userId: userId });
+    if (currentOTP === null) {
+      return {
+        status: 'error',
+        message: 'OTP not found, please try again',
+      };
+    }
+    const isOtpValid = this.compare(tokenOTP, currentOTP?.tokenOTP as string);
+    if (isOtpValid) {
+      await UserRepository.verify(userId);
+      const currentUser = await UserRepository.findOne({ _id: userId });
+      return {
+        status: 'OTP valid',
+        data: {
+          id: currentUser?._id,
+          userName: currentUser?.userName,
+          email: currentUser?.email,
+          token: currentUser?.token,
+        },
+      };
+    } else {
+      return {
+        status: 'OTP invalid',
+        message: 'Invalid tokenOTP please try again',
+      };
+    }
   }
 }

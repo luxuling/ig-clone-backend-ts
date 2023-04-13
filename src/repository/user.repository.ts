@@ -13,7 +13,13 @@ export default class UserRepository {
   }
 
   static async create({
-    userName, fullName, email, password, provider, noHp,
+    userName,
+    fullName,
+    email,
+    password,
+    provider,
+    noHp,
+    birth,
   }: IUserRegister) {
     return User.create({
       userName,
@@ -22,10 +28,11 @@ export default class UserRepository {
       email,
       noHp,
       password,
+      birth,
     });
   }
 
-  static async update(id: any, token: string, facebookId:string) {
+  static async update(id: any, token: string, facebookId: string) {
     await User.updateOne(
       {
         _id: id,
@@ -34,8 +41,17 @@ export default class UserRepository {
         facebookId,
         token,
         updatedAt: Date(),
-      },
+      }
     );
     return this.findOne({ _id: id });
+  }
+
+  static async verify(id: string) {
+    await User.updateOne(
+      { _id: id },
+      {
+        verified: true,
+      }
+    );
   }
 }

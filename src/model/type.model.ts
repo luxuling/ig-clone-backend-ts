@@ -10,6 +10,12 @@ export interface UserType {
   birth: string;
   password: string;
   token: string;
+  verified: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface OtpType {
+  userId: string;
+  tokenOTP: string;
 }

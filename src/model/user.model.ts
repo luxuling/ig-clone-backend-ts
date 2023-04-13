@@ -29,7 +29,7 @@ const UserSchema = new Schema<UserType>({
   },
   birth: {
     type: String,
-    default: '',
+    default: undefined,
   },
   provider: {
     type: String,
@@ -38,6 +38,10 @@ const UserSchema = new Schema<UserType>({
   token: {
     type: String,
     default: '',
+  },
+  verified: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,
