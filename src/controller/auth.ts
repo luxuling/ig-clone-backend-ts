@@ -1,38 +1,26 @@
-import type { Request, Response } from 'express';
-import ErrorHandler from '@error/index';
+import type { NextFunction, Request, Response } from 'express';
 import AuthService from '@service/auth.service';
 import { IFacebookData } from '@interface/auth.user.interface';
 
 export default class AuthController {
-  static async register(req: Request, res: Response) {
-    try {
-      const data = await AuthService.register(await req.body);
-      res.json(data);
-      res.status(201);
-    } catch (error) {
-      ErrorHandler.databaseErrorHandler(error, res);
-    }
+  static async register(req: Request, res: Response, next: NextFunction) {
+    const response = await AuthService.register(await req.body);
+    res.status(response.status);
+    res.json(response.data);
   }
 
-  static async login(req: Request, res: Response) {
-    try {
-      const data = await AuthService.login(await req.body);
-      res.json(data);
-    } catch (error) {
-      ErrorHandler.databaseErrorHandler(error, res);
-    }
+  static async login(req: Request, res: Response, next: NextFunction) {
+    const response = await AuthService.login(await req.body);
+    res.status(response.status);
+    res.json(response.data);
   }
 
-  static async facebookAuth(req: Request, res: Response) {
-    try {
-      const data = await AuthService.facebookCallback(
-        req.user as IFacebookData
-      );
-      res.status(201);
-      res.json(data);
-    } catch (error) {
-      ErrorHandler.databaseErrorHandler(error, res);
-    }
+  static async facebookAuth(req: Request, res: Response, next: NextFunction) {
+    const response = await AuthService.facebookCallback(
+      req.user as IFacebookData
+    );
+    res.status(response.status);
+    res.json(response.data);
   }
 
   static async emailOTP(req: Request, res: Response) {
@@ -64,16 +52,11 @@ export default class AuthController {
   }
 
   static async validateOTPresponse(req: Request, res: Response) {
-    try {
-      const response = await AuthService.validateOTP(
-        req.body.userId,
-        req.body.otp
-      );
-      res.status(200);
-      res.json(response);
-    } catch (error) {
-      res.send(error);
-      res.status(400);
-    }
+    const response = await AuthService.validateOTP(
+      req.body.userId,
+      req.body.otp
+    );
+    res.status(response.status);
+    res.json(response.data);
   }
 }

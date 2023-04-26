@@ -3,15 +3,31 @@ import { NextFunction, Request, Response } from 'express';
 
 export default class AuthMiddleware {
   static async register(req: Request, res: Response, next: NextFunction) {
-    const isDuplicate = await User.findOne({
-      userName: req.body.userName,
-    } || { email: req.body.email });
+    const duplicateMessage = {
+      status: 400,
+      data: {
+        message: 'Duplicate issue, Please fill with different data.',
+      },
+    };
+
+    const shortPassword = {
+      status: 400,
+      data: {
+        message: 'Passswort must be at least 6 characters.',
+      },
+    };
+
+    const isDuplicate = await User.findOne(
+      {
+        userName: req.body.userName,
+      } || { email: req.body.email }
+    );
     if (isDuplicate) {
-      res.status(400);
-      res.send('duplicate issue');
+      res.status(duplicateMessage.status);
+      res.json(duplicateMessage.data);
     } else if (req.body.password.length < 6) {
-      res.status(400);
-      res.send('password must be at least 6 characters');
+      res.status(shortPassword.status);
+      res.json(shortPassword.data);
     } else {
       next();
     }

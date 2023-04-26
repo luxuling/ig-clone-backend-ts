@@ -11,8 +11,6 @@ import nodemailerConf from '@config/otp';
 import twilloConf from '@config/twillo';
 import convertPhoneNumber from '@utils/convert.number';
 import { OTPdb } from '@model/otp.model';
-import { ObjectId } from 'mongoose';
-
 export default class AuthService {
   private static readonly rounds = auth.round;
 
@@ -37,28 +35,42 @@ export default class AuthService {
   }
 
   static async register(body: IUserRegister) {
-    const userData = await UserRepository.create({
-      userName: body.userName,
-      fullName: body.fullName,
-      provider: 'local',
-      email: body.email,
-      noHp: body.noHp,
-      password: this.hash(body.password),
-      birth: body.birth,
-    });
+    try {
+      const userData = await UserRepository.create({
+        userName: body.userName,
+        fullName: body.fullName,
+        provider: 'local',
+        email: body.email,
+        noHp: body.noHp,
+        password: this.hash(body.password),
+        birth: body.birth,
+      });
+      const tokinize = this.tokenize({
+        id: userData._id,
+        email: userData.email,
+      });
+      await UserRepository.update(userData._id, tokinize, userData.facebookId);
 
-    const tokinize = this.tokenize({ id: userData._id, email: userData.email });
-    UserRepository.update(userData._id, tokinize, userData.facebookId);
-
-    if (userData.email !== undefined) {
-      this.sendEmailOTP(userData.email, userData._id);
-    } else {
-      this.sendSmsOTP(userData.noHp, userData._id);
+      if (userData.email !== undefined) {
+        await this.sendEmailOTP(userData.email, userData._id);
+      } else {
+        await this.sendSmsOTP(userData.noHp, userData._id);
+      }
+      return {
+        status: 200,
+        data: {
+          id: userData._id,
+          message: 'OTP is sent successfully, wait for authentication',
+        },
+      };
+    } catch (error: any) {
+      return {
+        status: 400,
+        data: {
+          message: error.message,
+        },
+      };
     }
-    return {
-      status: 'pending',
-      message: 'OTP is sent successfully, wait for authentication',
-    };
   }
 
   static async login(body: any) {
@@ -67,7 +79,12 @@ export default class AuthService {
       .where(dinamicKey)
       .equals(body[dinamicKey]);
     if (userData === null) {
-      throw new Error(`Could find user with email ${body.email}`);
+      return {
+        status: 400,
+        data: {
+          message: 'Could not find user.',
+        },
+      };
     }
     const isPasswordMatch = this.compare(body.password, userData.password);
     if (isPasswordMatch) {
@@ -81,17 +98,28 @@ export default class AuthService {
         userData.facebookId
       );
       return {
-        fullName: userResponse?.fullName,
-        userName: userResponse?.userName,
-        email: userResponse?.email,
-        noHp: userResponse?.noHp,
-        birth: userResponse?.birth,
-        token: userResponse?.token,
-        createdAt: userResponse?.createdAt,
-        updatedAt: userResponse?.updatedAt,
+        status: 200,
+        data: {
+          data: {
+            fullName: userResponse?.fullName,
+            userName: userResponse?.userName,
+            email: userResponse?.email,
+            noHp: userResponse?.noHp,
+            birth: userResponse?.birth,
+            token: userResponse?.token,
+            createdAt: userResponse?.createdAt,
+            updatedAt: userResponse?.updatedAt,
+          },
+          message: 'Successfully login.',
+        },
       };
     }
-    throw new Error(`Could not find user with password ${body.password}`);
+    return {
+      status: 400,
+      data: {
+        message: 'Your password is incorrect',
+      },
+    };
   }
 
   static async facebookCallback(passportData: IFacebookData) {
@@ -119,22 +147,32 @@ export default class AuthService {
         passportData.profile.id
       );
       return {
-        facebookId: userResponse?.facebookId,
-        fullName: userResponse?.fullName,
-        userName: userResponse?.userName,
-        email: userResponse?.email,
-        token: userResponse?.token,
-        createdAt: userResponse?.createdAt,
-        updatedAt: userResponse?.updatedAt,
+        status: 200,
+        data: {
+          data: {
+            facebookId: userResponse?.facebookId,
+            fullName: userResponse?.fullName,
+            userName: userResponse?.userName,
+            email: userResponse?.email,
+            token: userResponse?.token,
+            createdAt: userResponse?.createdAt,
+            updatedAt: userResponse?.updatedAt,
+          },
+          message: 'Successfully Login',
+        },
       };
     }
     return {
-      fullName: currentUser?.fullName,
-      userName: currentUser?.userName,
-      email: currentUser?.email,
-      token: currentUser?.token,
-      createdAt: currentUser?.createdAt,
-      updatedAt: currentUser?.updatedAt,
+      status: 200,
+      data: {
+        fullName: currentUser?.fullName,
+        userName: currentUser?.userName,
+        email: currentUser?.email,
+        token: currentUser?.token,
+        createdAt: currentUser?.createdAt,
+        updatedAt: currentUser?.updatedAt,
+      },
+      message: 'Successfully Login',
     };
   }
 
@@ -188,8 +226,10 @@ export default class AuthService {
     const currentOTP = await OTPdb.findOne({ userId: userId });
     if (currentOTP === null) {
       return {
-        status: 'error',
-        message: 'OTP not found, please try again',
+        status: 400,
+        data: {
+          message: 'OTP not found, please try again',
+        },
       };
     }
     const isOtpValid = this.compare(tokenOTP, currentOTP?.tokenOTP as string);
@@ -197,18 +237,19 @@ export default class AuthService {
       await UserRepository.verify(userId);
       const currentUser = await UserRepository.findOne({ _id: userId });
       return {
-        status: 'OTP valid',
+        status: 201,
         data: {
           id: currentUser?._id,
-          userName: currentUser?.userName,
-          email: currentUser?.email,
           token: currentUser?.token,
+          message: 'OTP valid',
         },
       };
     } else {
       return {
-        status: 'OTP invalid',
-        message: 'Invalid tokenOTP please try again',
+        status: 201,
+        data: {
+          message: 'Invalid tokenOTP please try again',
+        },
       };
     }
   }
