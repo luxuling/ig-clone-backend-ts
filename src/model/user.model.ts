@@ -26,6 +26,7 @@ const UserSchema = new Schema<UserType>({
   password: {
     required: true,
     type: String,
+    min: 6,
   },
   birth: {
     type: String,
