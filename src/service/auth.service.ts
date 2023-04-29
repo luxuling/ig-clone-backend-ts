@@ -11,6 +11,7 @@ import nodemailerConf from '@config/otp';
 import twilloConf from '@config/twillo';
 import convertPhoneNumber from '@utils/convert.number';
 import { OTPdb } from '@model/otp.model';
+import databaseErrorHandler from '@error/database.error';
 export default class AuthService {
   private static readonly rounds = auth.round;
 
@@ -64,12 +65,8 @@ export default class AuthService {
         },
       };
     } catch (error: any) {
-      return {
-        status: 400,
-        data: {
-          message: error.message,
-        },
-      };
+      const findedError = databaseErrorHandler(error);
+      return findedError;
     }
   }
 
@@ -246,7 +243,7 @@ export default class AuthService {
       };
     } else {
       return {
-        status: 201,
+        status: 400,
         data: {
           message: 'Invalid tokenOTP please try again',
         },
