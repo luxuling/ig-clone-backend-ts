@@ -1,21 +1,31 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import AuthService from '@service/auth.service';
 import { IFacebookData } from '@interface/auth.user.interface';
+import setCookie from '@utils/set.cookie';
 
 export default class AuthController {
-  static async register(req: Request, res: Response, next: NextFunction) {
+  static async register(req: Request, res: Response) {
     const response = await AuthService.register(await req.body);
     res.status(response.status);
     res.json(response.data);
   }
 
-  static async login(req: Request, res: Response, next: NextFunction) {
+  static async login(req: Request, res: Response) {
     const response = await AuthService.login(await req.body);
+    setCookie(res, response.data.data?.token as string);
     res.status(response.status);
     res.json(response.data);
   }
 
-  static async facebookAuth(req: Request, res: Response, next: NextFunction) {
+  static async validateUser(req: Request, res: Response) {
+    const response = await AuthService.validateUserFunction(
+      req.cookies['lixu-ig-clone']
+    );
+    res.status(response.status);
+    res.json(response.data);
+  }
+
+  static async facebookAuth(req: Request, res: Response) {
     const response = await AuthService.facebookCallback(
       req.user as IFacebookData
     );

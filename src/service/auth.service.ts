@@ -1,6 +1,6 @@
 import auth from '@config/auth';
 import bcrypt from 'bcrypt';
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import twillo from 'twilio';
@@ -19,7 +19,7 @@ export default class AuthService {
 
   private static readonly defaultJwtOptions: SignOptions = {
     algorithm: 'HS256',
-    expiresIn: '30 days',
+    expiresIn: '3 day',
   };
 
   static hash(data: string | Buffer): string | never {
@@ -33,6 +33,10 @@ export default class AuthService {
 
   static tokenize(data: string | object) {
     return jwt.sign(data, this.secret, this.defaultJwtOptions);
+  }
+
+  static verify(data: string) {
+    return jwt.verify(data, this.secret);
   }
 
   static async register(body: IUserRegister) {
@@ -117,6 +121,39 @@ export default class AuthService {
         message: 'Your password is incorrect',
       },
     };
+  }
+
+  static async validateUserFunction(token: string) {
+    interface DecodedType extends JwtPayload {
+      id: string;
+    }
+    try {
+      const decoded: DecodedType = this.verify(token) as DecodedType;
+      const currentUser = await UserRepository.findOne({ _id: decoded.id });
+      return {
+        status: 200,
+        data: {
+          data: {
+            fullName: currentUser?.fullName,
+            userName: currentUser?.userName,
+            email: currentUser?.email,
+            noHp: currentUser?.noHp,
+            birth: currentUser?.birth,
+            token: currentUser?.token,
+            createdAt: currentUser?.createdAt,
+            updatedAt: currentUser?.updatedAt,
+          },
+          message: 'Successfully Authorization.',
+        },
+      };
+    } catch (error) {
+      return {
+        status: 401,
+        data: {
+          message: 'Your session is expired. Please login again!',
+        },
+      };
+    }
   }
 
   static async facebookCallback(passportData: IFacebookData) {

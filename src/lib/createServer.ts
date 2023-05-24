@@ -6,12 +6,12 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import sessionMiddleware from '@middleware/session.middleware';
 import passport from '@middleware/facebook.passport';
-import cors from 'cors';
 import router from '../router/auth';
+import corsMiddleware from '@middleware/cors.middleware';
 
 const createServer = () => {
   const app = express();
-  app.use(cors());
+  app.use(corsMiddleware);
   mongoose.connect('mongodb://localhost:27017/ig-database');
   app.use(bodyParser.json());
 

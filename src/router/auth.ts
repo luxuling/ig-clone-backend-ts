@@ -11,6 +11,7 @@ router.post(
   expressAsyncHandler(AuthController.register)
 );
 router.post('/auth/login', expressAsyncHandler(AuthController.login));
+router.post('/auth/me', expressAsyncHandler(AuthController.validateUser));
 router.post('/auth/otp', expressAsyncHandler(AuthController.emailOTP));
 router.post('/auth/sms/otp', expressAsyncHandler(AuthController.smsOTP));
 router.post(
