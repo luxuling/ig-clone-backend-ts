@@ -8,6 +8,7 @@ export interface UserType {
   email: string;
   noHp: string;
   birth: string;
+  profile: object;
   password: string;
   token: string;
   verified: boolean;
@@ -18,4 +19,12 @@ export interface UserType {
 export interface OtpType {
   userId: string;
   tokenOTP: string;
+}
+
+export interface ProfileType {
+  picture: string;
+  post: number;
+  followers: number;
+  followed: number;
+  bio: string;
 }

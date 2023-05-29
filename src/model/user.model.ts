@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import { UserType } from './type.model';
+import UserProfile from './profile.model';
 
 const UserSchema = new Schema<UserType>({
   facebookId: {
@@ -40,6 +41,7 @@ const UserSchema = new Schema<UserType>({
     type: String,
     default: '',
   },
+  profile: UserProfile,
   verified: {
     type: Boolean,
     default: false,

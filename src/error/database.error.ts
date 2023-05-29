@@ -3,6 +3,7 @@ const databaseErrorHandler = (err: any) => {
     return {
       status: 400,
       data: {
+        token: null,
         message: `Duplicate error at ${
           Object.values(err.keyValue)[0]
         }. Please try diferent ${Object.keys(err.keyPattern)[0]}`,

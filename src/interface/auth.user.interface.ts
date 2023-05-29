@@ -1,9 +1,17 @@
+interface ProfileRegister {
+  picture: string;
+  post: number;
+  followers: number;
+  followed: number;
+  bio: string;
+}
 export interface IUserRegister {
   userName: string;
   fullName: string;
   provider: string;
   email: string;
   noHp: string;
+  profile: ProfileRegister;
   password: string;
   birth: string;
 }
@@ -22,6 +30,6 @@ export interface IFacebookData {
       first_name: string;
       last_name: string;
       birthday: string;
-    }
+    };
   };
 }

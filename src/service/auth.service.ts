@@ -35,8 +35,15 @@ export default class AuthService {
     return jwt.sign(data, this.secret, this.defaultJwtOptions);
   }
 
-  static verify(data: string) {
+  static jwtVerify(data: string) {
     return jwt.verify(data, this.secret);
+  }
+
+  static isOtpVerified(data: { verified: boolean }): boolean {
+    if (!data.verified) {
+      return false;
+    }
+    return true;
   }
 
   static async register(body: IUserRegister) {
@@ -46,17 +53,29 @@ export default class AuthService {
         fullName: body.fullName,
         provider: 'local',
         email: body.email,
+        profile: {
+          picture:
+            'https://res.cloudinary.com/lixuling/image/upload/v1684892922/27470346_7294811_agixoo.jpg',
+          post: 0,
+          followers: 0,
+          followed: 0,
+          bio: '',
+        },
         noHp: body.noHp,
         password: this.hash(body.password),
         birth: body.birth,
       });
-      const tokinize = this.tokenize({
+      const token = this.tokenize({
         id: userData._id,
         email: userData.email,
       });
-      await UserRepository.update(userData._id, tokinize, userData.facebookId);
+      const userResponse = await UserRepository.update(
+        userData._id,
+        token,
+        userData.facebookId
+      );
 
-      if (userData.email !== undefined) {
+      if (userResponse?.email !== undefined) {
         await this.sendEmailOTP(userData.email, userData._id);
       } else {
         await this.sendSmsOTP(userData.noHp, userData._id);
@@ -64,7 +83,7 @@ export default class AuthService {
       return {
         status: 200,
         data: {
-          id: userData._id,
+          token: userResponse?.token as string,
           message: 'OTP is sent successfully, wait for authentication',
         },
       };
@@ -79,6 +98,7 @@ export default class AuthService {
     const userData = await User.findOne()
       .where(dinamicKey)
       .equals(body[dinamicKey]);
+
     if (userData === null) {
       return {
         status: 400,
@@ -87,8 +107,17 @@ export default class AuthService {
         },
       };
     }
+
     const isPasswordMatch = this.compare(body.password, userData.password);
     if (isPasswordMatch) {
+      if (!this.isOtpVerified(userData as { verified: boolean })) {
+        return {
+          status: 401,
+          data: {
+            message: 'Your otp is not verified',
+          },
+        };
+      }
       const tokinize = this.tokenize({
         id: userData._id,
         email: userData.email,
@@ -128,8 +157,18 @@ export default class AuthService {
       id: string;
     }
     try {
-      const decoded: DecodedType = this.verify(token) as DecodedType;
+      const decoded: DecodedType = this.jwtVerify(token) as DecodedType;
       const currentUser = await UserRepository.findOne({ _id: decoded.id });
+
+      if (!this.isOtpVerified(currentUser as { verified: boolean })) {
+        return {
+          status: 401,
+          data: {
+            message: 'Your otp is not verified',
+          },
+        };
+      }
+
       return {
         status: 200,
         data: {
@@ -171,6 +210,14 @@ export default class AuthService {
           passportData.profile._json.last_name,
         password: passportData.accessToken,
         provider: passportData.profile.provider,
+        profile: {
+          picture:
+            'https://res.cloudinary.com/lixuling/image/upload/v1684892922/27470346_7294811_agixoo.jpg',
+          post: 0,
+          followers: 0,
+          followed: 0,
+          bio: '',
+        },
         birth: passportData.profile._json.birthday,
         email: passportData.profile._json.email,
         noHp: '',
@@ -256,7 +303,12 @@ export default class AuthService {
     return message.sid;
   }
 
-  static async validateOTP(userId: string, tokenOTP: string) {
+  static async validateOTP(token: string, tokenOTP: string) {
+    interface DecodedType extends JwtPayload {
+      id: string;
+    }
+    const decoded: DecodedType = this.jwtVerify(token) as DecodedType;
+    const userId = decoded.id;
     const currentOTP = await OTPdb.findOne({ userId: userId });
     if (currentOTP === null) {
       return {

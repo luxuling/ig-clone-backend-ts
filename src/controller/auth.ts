@@ -6,6 +6,9 @@ import setCookie from '@utils/set.cookie';
 export default class AuthController {
   static async register(req: Request, res: Response) {
     const response = await AuthService.register(await req.body);
+    if (response.data.token) {
+      setCookie(res, response.data?.token as string);
+    }
     res.status(response.status);
     res.json(response.data);
   }
@@ -63,7 +66,7 @@ export default class AuthController {
 
   static async validateOTPresponse(req: Request, res: Response) {
     const response = await AuthService.validateOTP(
-      req.body.userId,
+      req.cookies['lixu-ig-clone'],
       req.body.otp
     );
     res.status(response.status);
